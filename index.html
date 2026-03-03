@@ -543,6 +543,17 @@
       .footer-offices { flex-direction: column; gap: 20px; }
       .footer-sep { width: 40px; height: 1px; align-self: center; margin: 0; }
     }
+
+    /* ── Revenue mix dynamic hint ── */
+    .revmix-hint {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      font-style: italic;
+      line-height: 1.5;
+      min-height: 15px;
+      transition: opacity 0.2s;
+    }
   </style>
 </head>
 <body>
@@ -718,12 +729,10 @@
               <div class="row">
                 <div class="f">
                   <label>What best describes your revenue mix? <span class="r">*</span></label>
-                  <select name="revenueMix" required>
-                    <option value="">Select revenue mix</option>
-                    <option value="recurring">&gt;70% Recurring / Service Contracts</option>
-                    <option value="mixed">30–70% Mixed Project &amp; Service</option>
-                    <option value="project">&gt;70% Project / New Construction</option>
+                  <select id="revMix" name="revenueMix" required>
+                    <option value="">Select your industry above first</option>
                   </select>
+                  <div class="revmix-hint" id="revMixHint"></div>
                 </div>
                 <div class="f">
                   <label>Who are your primary customers? <span class="r">*</span></label>
@@ -960,6 +969,245 @@ document.querySelector('[name=source]').value = up.get('source')||up.get('utm_so
 
 const TITLES = ['Contact Information','Business Details','Financial Information','Submission Complete'];
 
+/* ══════════════════════════════════════════════════════════════════
+   INDUSTRY-SPECIFIC REVENUE MIX OPTIONS
+   Each NAICS sector maps to tailored revenue mix choices + a hint
+   ══════════════════════════════════════════════════════════════════ */
+const REVENUE_MIX = {
+  "11": {
+    hint: "Characterize how your agricultural revenue is generated",
+    opts: [
+      {v:"commodity-sales", l:">70% Commodity / Crop / Livestock Sales"},
+      {v:"contract-farming", l:">70% Contract Farming & Forward Agreements"},
+      {v:"ag-services", l:">70% Agricultural Services (Custom Harvesting, Spraying, etc.)"},
+      {v:"mixed-ag", l:"Mixed — Crop Sales, Livestock & Service Revenue"},
+      {v:"value-added-ag", l:">70% Value-Added Processing (Packaged, Organic, Direct-to-Consumer)"}
+    ]
+  },
+  "21": {
+    hint: "Characterize how your extraction/mining revenue is generated",
+    opts: [
+      {v:"production-extraction", l:">70% Production & Extraction Sales"},
+      {v:"royalties-licensing", l:">70% Royalties, Mineral Rights & Licensing"},
+      {v:"oilfield-services", l:">70% Oilfield / Mining Services & Support"},
+      {v:"midstream-transport", l:">70% Midstream / Transportation & Processing Fees"},
+      {v:"mixed-extraction", l:"Mixed — Production, Services & Royalties"}
+    ]
+  },
+  "22": {
+    hint: "Characterize how your utility revenue is generated",
+    opts: [
+      {v:"regulated-rate", l:">70% Regulated Rate-Base Revenue"},
+      {v:"unregulated-market", l:">70% Unregulated / Merchant Market Sales"},
+      {v:"infrastructure-fees", l:">70% Infrastructure & Capacity Fees"},
+      {v:"renewable-ppa", l:">70% Renewable Energy PPAs & RECs"},
+      {v:"mixed-utility", l:"Mixed — Regulated, Merchant & Fee-Based"}
+    ]
+  },
+  "23": {
+    hint: "Characterize how your construction revenue is generated",
+    opts: [
+      {v:"recurring-service", l:">70% Recurring Service / Maintenance Contracts"},
+      {v:"mixed-project-service", l:"30–70% Mixed Project & Service Revenue"},
+      {v:"new-construction", l:">70% New Construction / Project-Based"},
+      {v:"design-build", l:">70% Design-Build / Turnkey Contracts"},
+      {v:"government-contracts", l:">70% Government / Municipal Contracts"},
+      {v:"subcontractor", l:">70% Subcontractor Revenue (Work for GCs)"}
+    ]
+  },
+  "31-33": {
+    hint: "Characterize how your manufacturing revenue is generated",
+    opts: [
+      {v:"oem-contract", l:">70% OEM / Contract Manufacturing"},
+      {v:"branded-direct", l:">70% Branded / Direct Product Sales"},
+      {v:"private-label", l:">70% Private Label / White Label"},
+      {v:"aftermarket-parts", l:">70% Aftermarket Parts, Service & MRO"},
+      {v:"mixed-mfg", l:"Mixed — OEM, Branded & Aftermarket"},
+      {v:"licensing-ip", l:">70% Licensing & Intellectual Property Revenue"}
+    ]
+  },
+  "42": {
+    hint: "Characterize how your wholesale/distribution revenue is generated",
+    opts: [
+      {v:"distribution-resale", l:">70% Distribution / Resale (Pass-Through Margins)"},
+      {v:"value-added-dist", l:">70% Value-Added Distribution (Kitting, Assembly, Custom)"},
+      {v:"private-label-wholesale", l:">70% Private Label / Proprietary Product Sales"},
+      {v:"drop-ship-marketplace", l:">70% Drop-Ship / Marketplace / Brokerage"},
+      {v:"mixed-wholesale", l:"Mixed — Distribution, Value-Added & Proprietary"}
+    ]
+  },
+  "44-45": {
+    hint: "Characterize how your retail revenue is generated",
+    opts: [
+      {v:"brick-mortar", l:">70% Brick-and-Mortar / In-Store Sales"},
+      {v:"ecommerce-dtc", l:">70% E-Commerce / Direct-to-Consumer Online"},
+      {v:"omnichannel", l:"Omnichannel — Balanced In-Store & Online"},
+      {v:"subscription-membership", l:">70% Subscription / Membership / Auto-Ship"},
+      {v:"franchise-retail", l:">70% Franchise / Licensing Revenue"},
+      {v:"mixed-retail", l:"Mixed — Retail, Wholesale & Online"}
+    ]
+  },
+  "48-49": {
+    hint: "Characterize how your transportation/logistics revenue is generated",
+    opts: [
+      {v:"contract-dedicated", l:">70% Contract / Dedicated Route Revenue"},
+      {v:"spot-on-demand", l:">70% Spot Market / On-Demand Freight"},
+      {v:"brokerage-3pl", l:">70% Brokerage / 3PL / Asset-Light Fees"},
+      {v:"last-mile-delivery", l:">70% Last-Mile / Final-Mile Delivery"},
+      {v:"warehousing-storage", l:">70% Warehousing, Storage & Fulfillment Fees"},
+      {v:"mixed-transport", l:"Mixed — Contract, Spot & Brokerage"}
+    ]
+  },
+  "51": {
+    hint: "Characterize how your information/technology revenue is generated",
+    opts: [
+      {v:"saas-subscription", l:">70% SaaS / Recurring Subscription Revenue"},
+      {v:"perpetual-licensing", l:">70% Perpetual Licensing / On-Premise Software"},
+      {v:"advertising-media", l:">70% Advertising & Media Revenue"},
+      {v:"data-analytics", l:">70% Data Licensing / Analytics-as-a-Service"},
+      {v:"transactional-usage", l:">70% Transactional / Usage-Based (API Calls, Per-Seat)"},
+      {v:"mixed-info", l:"Mixed — SaaS, Licensing, Advertising & Services"}
+    ]
+  },
+  "52": {
+    hint: "Characterize how your financial services revenue is generated",
+    opts: [
+      {v:"fee-advisory", l:">70% Fee-Based / Advisory & AUM Revenue"},
+      {v:"interest-spread", l:">70% Net Interest Income / Spread Revenue"},
+      {v:"premium-underwriting", l:">70% Premium & Underwriting Income"},
+      {v:"commission-transaction", l:">70% Commission & Transaction-Based Fees"},
+      {v:"origination-servicing", l:">70% Loan Origination & Servicing Fees"},
+      {v:"mixed-financial", l:"Mixed — Fees, Interest, Premiums & Commissions"}
+    ]
+  },
+  "53": {
+    hint: "Characterize how your real estate revenue is generated",
+    opts: [
+      {v:"lease-rental", l:">70% Lease / Rental Income (NNN, Gross, Modified)"},
+      {v:"brokerage-transaction", l:">70% Transaction & Brokerage Commissions"},
+      {v:"property-development", l:">70% Development / Build-to-Sell Revenue"},
+      {v:"property-management", l:">70% Property Management & HOA Fees"},
+      {v:"cam-ancillary", l:">70% CAM Reimbursements & Ancillary Income"},
+      {v:"mixed-re", l:"Mixed — Leasing, Brokerage, Management & Development"}
+    ]
+  },
+  "54": {
+    hint: "Characterize how your professional services revenue is generated",
+    opts: [
+      {v:"retainer-recurring", l:">70% Recurring Retainers & Managed Services"},
+      {v:"project-engagement", l:">70% Project / Engagement-Based (Fixed Fee or T&M)"},
+      {v:"staff-augmentation", l:">70% Staff Augmentation & Resource Placement"},
+      {v:"outcome-contingency", l:">70% Outcome-Based / Contingency / Success Fees"},
+      {v:"mixed-professional", l:"30–70% Mixed Retainer & Project Revenue"},
+      {v:"licensing-royalty-pro", l:">70% IP Licensing, Royalties & Technology Fees"}
+    ]
+  },
+  "55": {
+    hint: "Characterize how your management company revenue is generated",
+    opts: [
+      {v:"management-fees", l:">70% Intercompany Management & Advisory Fees"},
+      {v:"dividend-investment", l:">70% Dividend & Investment Income from Subsidiaries"},
+      {v:"shared-services", l:">70% Shared Services Allocation Revenue"},
+      {v:"mixed-holdco", l:"Mixed — Management Fees, Dividends & Shared Services"}
+    ]
+  },
+  "56": {
+    hint: "Characterize how your admin/support/waste revenue is generated",
+    opts: [
+      {v:"recurring-service-contracts", l:">70% Recurring Service Contracts (Janitorial, Security, Waste)"},
+      {v:"staffing-placement", l:">70% Staffing, Temp Placement & Payroll Services"},
+      {v:"project-remediation", l:">70% Project-Based / Remediation & Cleanup"},
+      {v:"route-based", l:">70% Route-Based / Collection & Hauling Revenue"},
+      {v:"mixed-admin", l:"Mixed — Recurring Contracts, Staffing & Project Work"}
+    ]
+  },
+  "61": {
+    hint: "Characterize how your education revenue is generated",
+    opts: [
+      {v:"tuition-enrollment", l:">70% Tuition & Enrollment Revenue"},
+      {v:"government-grants", l:">70% Government Funding, Grants & Title IV"},
+      {v:"corporate-training", l:">70% Corporate Training & B2B Contracts"},
+      {v:"online-course", l:">70% Online / Digital Course & Certification Sales"},
+      {v:"mixed-education", l:"Mixed — Tuition, Grants, Corporate & Online"}
+    ]
+  },
+  "62": {
+    hint: "Characterize how your healthcare revenue is generated",
+    opts: [
+      {v:"insurance-reimburse", l:">70% Commercial Insurance Reimbursement"},
+      {v:"government-payer", l:">70% Government Payer (Medicare / Medicaid)"},
+      {v:"self-pay-cash", l:">70% Self-Pay / Cash-Based / Concierge"},
+      {v:"capitated-vbc", l:">70% Capitated / Value-Based Care Contracts"},
+      {v:"mixed-payer", l:"Mixed Payer — Commercial, Government & Self-Pay"},
+      {v:"managed-care-contracts", l:">70% Managed Care Organization Contracts"}
+    ]
+  },
+  "71": {
+    hint: "Characterize how your entertainment/recreation revenue is generated",
+    opts: [
+      {v:"ticket-admission", l:">70% Ticket Sales / Gate Admission & Events"},
+      {v:"membership-pass", l:">70% Membership, Season Pass & Subscription Revenue"},
+      {v:"sponsorship-licensing", l:">70% Sponsorship, Licensing & Media Rights"},
+      {v:"food-bev-merch", l:">70% Ancillary — F&B, Merchandise & Concessions"},
+      {v:"mixed-entertainment", l:"Mixed — Ticketing, Memberships, Sponsorships & Ancillary"}
+    ]
+  },
+  "72": {
+    hint: "Characterize how your hospitality revenue is generated",
+    opts: [
+      {v:"room-lodging", l:">70% Room Revenue / Lodging (ADR & RevPAR Driven)"},
+      {v:"food-beverage", l:">70% Food & Beverage (Restaurant, Catering, Banquet)"},
+      {v:"franchise-mgmt-fee", l:">70% Franchise / Management Fee Revenue"},
+      {v:"events-group", l:">70% Events, Group Sales & Meeting Revenue"},
+      {v:"mixed-hospitality", l:"Mixed — Rooms, F&B, Events & Ancillary"}
+    ]
+  },
+  "81": {
+    hint: "Characterize how your service business revenue is generated",
+    opts: [
+      {v:"recurring-maintenance", l:">70% Recurring Maintenance & Service Agreements"},
+      {v:"on-demand-walkin", l:">70% On-Demand / Walk-In / Appointment-Based"},
+      {v:"parts-product-resale", l:">70% Parts & Product Resale (Attached to Service)"},
+      {v:"membership-dues", l:">70% Membership Dues & Annual Fees"},
+      {v:"mixed-other-services", l:"Mixed — Recurring, On-Demand & Product Revenue"}
+    ]
+  },
+  "92": {
+    hint: "Characterize how your government entity revenue is generated",
+    opts: [
+      {v:"tax-fee", l:">70% Tax & Fee Revenue"},
+      {v:"grant-funded", l:">70% Grant / Federal & State Funded"},
+      {v:"enterprise-fund", l:">70% Enterprise Fund / Utility Fee Revenue"},
+      {v:"mixed-government", l:"Mixed — Tax, Grant & Enterprise Revenue"}
+    ]
+  }
+};
+
+/* Populate revenue mix dropdown when industry sector changes */
+function doRevMix() {
+  const sv = document.getElementById('nsec').value;
+  const sel = document.getElementById('revMix');
+  const hint = document.getElementById('revMixHint');
+  sel.innerHTML = '';
+  hint.textContent = '';
+  sel.classList.remove('bad');
+
+  if (!sv || !REVENUE_MIX[sv]) {
+    sel.innerHTML = '<option value="">Select your industry above first</option>';
+    return;
+  }
+
+  const mix = REVENUE_MIX[sv];
+  sel.innerHTML = '<option value="">Select revenue mix</option>';
+  mix.opts.forEach(function(o) {
+    const opt = document.createElement('option');
+    opt.value = o.v;
+    opt.textContent = o.l;
+    sel.appendChild(opt);
+  });
+  hint.textContent = mix.hint;
+}
+
 const NT = {
   "11":{s:[{c:"111",l:"111 — Crop Production"},{c:"112",l:"112 — Animal Production & Aquaculture"},{c:"113",l:"113 — Forestry & Logging"},{c:"114",l:"114 — Fishing, Hunting & Trapping"},{c:"115",l:"115 — Agriculture & Forestry Support"}],g:{"111":[{c:"1111",l:"1111 — Oilseed & Grain Farming"},{c:"1112",l:"1112 — Vegetable & Melon Farming"},{c:"1113",l:"1113 — Fruit & Tree Nut Farming"},{c:"1114",l:"1114 — Greenhouse, Nursery & Floriculture"},{c:"1119",l:"1119 — Other Crop Farming"}],"112":[{c:"1121",l:"1121 — Cattle Ranching & Farming"},{c:"1122",l:"1122 — Hog & Pig Farming"},{c:"1123",l:"1123 — Poultry & Egg Production"},{c:"1124",l:"1124 — Sheep & Goat Farming"},{c:"1125",l:"1125 — Aquaculture"},{c:"1129",l:"1129 — Other Animal Production"}]}},
   "21":{s:[{c:"211",l:"211 — Oil & Gas Extraction"},{c:"212",l:"212 — Mining (except Oil & Gas)"},{c:"213",l:"213 — Mining Support Activities"}],g:{"211":[{c:"2111",l:"2111 — Oil & Gas Extraction"}],"212":[{c:"2121",l:"2121 — Coal Mining"},{c:"2122",l:"2122 — Metal Ore Mining"},{c:"2123",l:"2123 — Nonmetallic Mineral Mining & Quarrying"}],"213":[{c:"2131",l:"2131 — Support Activities for Mining"}]}},
@@ -993,6 +1241,8 @@ function doSub(){
   if(!sv||!NT[sv]) return;
   NT[sv].s.forEach(x=>{const o=document.createElement('option');o.value=x.c;o.textContent=x.l;ss.appendChild(o);});
   sw.classList.add('on');
+  /* Update revenue mix options for this sector */
+  doRevMix();
 }
 function doGrp(){
   const sv=document.getElementById('nsec').value,ssv=document.getElementById('nsub').value;
