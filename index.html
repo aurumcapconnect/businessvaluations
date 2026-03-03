@@ -517,11 +517,13 @@
     .footer-logo { height: 48px; width: auto; margin-bottom: 14px; opacity: 0.95; }
     .footer-offices { display: flex; gap: 40px; justify-content: center; margin-top: 4px; }
     .footer-office { text-align: center; }
-    .footer-office-label { font-size: 9px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--gold-lt); margin-bottom: 8px; }
     .footer-office-addr { font-size: 11px; color: rgba(255,255,255,0.65); line-height: 1.85; font-weight: 300; }
     .footer-office-phone { font-size: 11px; color: rgba(255,255,255,0.50); margin-top: 4px; font-weight: 300; letter-spacing: 0.5px; }
     .footer-office-phone a { color: rgba(255,255,255,0.50); text-decoration: none; }
     .footer-office-phone a:hover { color: var(--gold-lt); }
+    .footer-office-email { font-size: 11px; color: rgba(255,255,255,0.50); margin-top: 2px; font-weight: 300; letter-spacing: 0.3px; }
+    .footer-office-email a { color: rgba(255,255,255,0.50); text-decoration: none; }
+    .footer-office-email a:hover { color: var(--gold-lt); }
     .footer-sep { width: 1px; background: rgba(255,255,255,0.10); align-self: stretch; margin: 8px 0; }
     .footer-compliance { background: rgba(52,57,60,1); border-top: 1px solid rgba(255,255,255,0.06); }
     .footer-compliance-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 28px; padding: 14px 24px; flex-wrap: wrap; }
@@ -712,7 +714,6 @@
                 <div class="f"><label>Headquarters (City, State)</label><input type="text" name="location" placeholder="Denver, CO"></div>
               </div>
 
-              <!-- ═══ NEW: Revenue Mix & End Market (feeds Node 3 coefficient engine) ═══ -->
               <div class="sec-rule"></div>
               <div class="row">
                 <div class="f">
@@ -739,7 +740,6 @@
                   </select>
                 </div>
               </div>
-              <!-- ═══ END NEW FIELDS ═══ -->
 
               <div class="row row1">
                 <div class="f"><label>Brief Business Description</label><textarea name="businessDescription" placeholder="Describe your core products or services and the markets you serve..."></textarea></div>
@@ -787,7 +787,6 @@
                     <option value="Immediate">Immediate Need</option>
                   </select>
                 </div>
-                <!-- ═══ NEW: Customer Concentration (feeds Node 3 coefficient engine) ═══ -->
                 <div class="f">
                   <label>Top 5 Customer Revenue Share <span class="r">*</span></label>
                   <select name="customerConcentration" required>
@@ -799,7 +798,6 @@
                     <option value="over-70">Greater than 70%</option>
                   </select>
                 </div>
-                <!-- ═══ END NEW FIELD ═══ -->
               </div>
 
               <div class="sec-rule"></div>
@@ -907,7 +905,9 @@
 
   </div><!-- /page -->
 
-  <!-- BRANDED SITE FOOTER -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- BRANDED SITE FOOTER — Updated to match screenshot             -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
   <div class="site-footer">
     <div class="footer-strip">
       <img class="footer-img" src="https://static.wixstatic.com/media/bd8f3e_e3fbc154b4454270b60012ce79d6ab7c~mv2.jpg/v1/fill/w_440,h_310,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/bd8f3e_e3fbc154b4454270b60012ce79d6ab7c~mv2.jpg" alt="Denver Union Station">
@@ -915,15 +915,15 @@
         <img class="footer-logo" src="https://static.wixstatic.com/media/bd8f3e_7611671c419a458f95c3389d3bc0613a~mv2.png/v1/fill/w_158,h_108,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/AURUM-ICON-COLOR.png" alt="Aurum Capital Connect">
         <div class="footer-offices">
           <div class="footer-office">
-            <div class="footer-office-label">Denver</div>
-            <div class="footer-office-addr">7935 East Prentice Avenue<br>Suite 308<br>Greenwood Village, CO 80111</div>
-            <div class="footer-office-phone"><a href="tel:+17203898501">720-389-8501</a></div>
+            <div class="footer-office-addr">101 Fillmore Street, 16th Floor<br>Denver, Colorado 80206</div>
+            <div class="footer-office-phone"><a href="tel:+17202798881">(720) 279-8881</a></div>
+            <div class="footer-office-email"><a href="mailto:info@aurumcapconnect.com">info@aurumcapconnect.com</a></div>
           </div>
           <div class="footer-sep"></div>
           <div class="footer-office">
-            <div class="footer-office-label">Dallas</div>
-            <div class="footer-office-addr">5950 Sherry Lane<br>Suite 800<br>Dallas, TX 75225</div>
-            <div class="footer-office-phone"><a href="tel:+14695736695">469-573-6695</a></div>
+            <div class="footer-office-addr">4633 N. Central Expwy, Ste 360<br>Dallas, Texas 75206</div>
+            <div class="footer-office-phone"><a href="tel:+17202798881">(720) 279-8881</a></div>
+            <div class="footer-office-email"><a href="mailto:info@aurumcapconnect.com">info@aurumcapconnect.com</a></div>
           </div>
         </div>
       </div>
@@ -947,8 +947,9 @@
   </div>
 
   <div class="footer-copyright">
-    <p>&copy; 2025 Aurum Capital Connect, LLC &nbsp;&middot;&nbsp; Denver &amp; Dallas &nbsp;&middot;&nbsp; <a href="https://www.aurumcapconnect.com" target="_blank">www.aurumcapconnect.com</a></p>
+    <p>&copy; 2025 Aurum Capital Connect, LLC &middot; All Rights Reserved &nbsp;&middot;&nbsp; <a href="https://www.aurumcapconnect.com/privacy" target="_blank">Privacy Policy</a> &amp; <a href="https://www.aurumcapconnect.com" target="_blank">Terms of Service</a></p>
   </div>
+
 
 <script>
 const WEBHOOK = 'https://stephenlapham01.app.n8n.cloud/webhook-test/331f48d4-edcc-4b9b-9712-2dd2adaed86b';
