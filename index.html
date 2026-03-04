@@ -964,7 +964,7 @@
 
 
 <script>
-const WEBHOOK = 'https://stephenlapham01.app.n8n.cloud/webhook-test/331f48d4-edcc-4b9b-9712-2dd2adaed86b';
+const WEBHOOK = 'https://stephenlapham01.app.n8n.cloud/webhook/331f48d4-edcc-4b9b-9712-2dd2adaed86b';
 let cur = 1;
 const up = new URLSearchParams(location.search);
 document.querySelector('[name=campaignId]').value = up.get('campaign')||up.get('utm_campaign')||'';
@@ -1401,7 +1401,12 @@ document.getElementById('vform').addEventListener('submit',function(e){
   const data=Object.fromEntries(new FormData(e.target).entries());
   ['annualRevenue','annualProfit','totalAssets','totalLiabilities'].forEach(k=>{if(data[k])data[k]=data[k].replace(/,/g,'');});
   /* Fire webhook in background — don't wait for response */
-  fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).catch(()=>{});
+  const blob = new Blob([JSON.stringify(data)],{type:'text/plain'});
+  if(navigator.sendBeacon){
+    navigator.sendBeacon(WEBHOOK, blob);
+  } else {
+    fetch(WEBHOOK,{method:'POST',body:JSON.stringify(data),keepalive:true}).catch(()=>{});
+  }
   /* Go straight to thank you screen */
   showSec(4);
 });
