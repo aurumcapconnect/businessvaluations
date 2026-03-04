@@ -964,7 +964,7 @@
 
 
 <script>
-const WEBHOOK = 'https://stephenlapham01.app.n8n.cloud/webhook/331f48d4-edcc-4b9b-9712-2dd2adaed86b';
+const WEBHOOK = 'https://stephenlapham01.app.n8n.cloud/webhook-test/331f48d4-edcc-4b9b-9712-2dd2adaed86b';
 let cur = 1;
 const up = new URLSearchParams(location.search);
 document.querySelector('[name=campaignId]').value = up.get('campaign')||up.get('utm_campaign')||'';
@@ -1394,28 +1394,16 @@ function showErr(m){
   setTimeout(()=>e.style.display='none',5000);
 }
 
-document.getElementById('vform').addEventListener('submit',async function(e){
+document.getElementById('vform').addEventListener('submit',function(e){
   e.preventDefault();
   if(!check(cur)){showErr('Please complete all required fields.');return;}
   collectCB();
   const data=Object.fromEntries(new FormData(e.target).entries());
   ['annualRevenue','annualProfit','totalAssets','totalLiabilities'].forEach(k=>{if(data[k])data[k]=data[k].replace(/,/g,'');});
-  document.querySelectorAll('.fs').forEach(s=>s.classList.remove('on'));
-  document.getElementById('form-panel-head').style.display='none';
-  document.getElementById('ls').classList.add('on');
-  try{
-    const r=await fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-    document.getElementById('ls').classList.remove('on');
-    if(r.ok||r.status===200){ document.getElementById('ls').classList.remove('on'); showSec(4); }
-    else{
-      try{const j=await r.json();document.getElementById('form-panel-head').style.display='';showSec(3);showErr(j.error||'Something went wrong. Please try again.');}
-      catch{document.getElementById('ls').classList.remove('on'); showSec(4);}
-    }
-  }catch{
-    document.getElementById('ls').classList.remove('on');
-    document.getElementById('form-panel-head').style.display='';
-    showSec(3); showErr('Connection error. Please check your internet and try again.');
-  }
+  /* Fire webhook in background — don't wait for response */
+  fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).catch(()=>{});
+  /* Go straight to thank you screen */
+  showSec(4);
 });
 
 document.querySelectorAll('input,select,textarea').forEach(f=>f.addEventListener('input',()=>f.classList.remove('bad')));
